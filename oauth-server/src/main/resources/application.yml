@@ -1,0 +1,20 @@
+server:
+  port: 12100
+spring:
+  application:
+    name: oauth-server
+  security:
+    oauth2:
+      authorizationserver:
+        issuer: http://localhost:12200
+      resourceserver:
+        opaquetoken:
+          client-secret: VxubZgAXyyTq9lGjj3qGvWNsHtE4SqTq
+
+cors:
+  allow-origin: http://localhost:12200
+
+logging:
+  level:
+    org.springframework.web: debug
+    org.springframework.security: debug

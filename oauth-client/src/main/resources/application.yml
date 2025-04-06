@@ -1,0 +1,27 @@
+server:
+  port: 12200
+spring:
+  application:
+    name: oauth-client
+  datasource:
+    hikari:
+      username: root
+      password: asdf1234
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://localhost:3333/security_demo?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+  security:
+    oauth2:
+      authorizationserver:
+        endpoint:
+          jwk-set-uri: http://localhost:12100/
+      resourceserver:
+        opaquetoken:
+          client-id: oauth-client
+
+cors:
+  allow-origin: http://localhost:4000
+
+logging:
+  level:
+    org.springframework.web: debug
+    org.springframework.security: debug
