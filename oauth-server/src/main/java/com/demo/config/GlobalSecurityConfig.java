@@ -141,9 +141,14 @@ public class GlobalSecurityConfig {
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("https://oauth.pstmn.io/v1/callback")
                 .scope(OidcScopes.OPENID).scope(OidcScopes.EMAIL)
-                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(10))
-                        .refreshTokenTimeToLive(Duration.ofHours(8)).reuseRefreshTokens(false)
-                        .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED).build()).build();
+                .tokenSettings(
+                        TokenSettings.builder()
+                                .accessTokenTimeToLive(Duration.ofMinutes(10))
+                                .refreshTokenTimeToLive(Duration.ofHours(8)).reuseRefreshTokens(false)
+                                .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
+                                .build()
+                )
+                .build();
 
         return new InMemoryRegisteredClientRepository(myClient, authCodeClient);
     }
@@ -199,7 +204,8 @@ public class GlobalSecurityConfig {
     public OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer() {
         return context -> {
             context.getClaims().claims(claim -> {
-                claim.put("roles", )
+                // todo
+//                claim.put("roles", )
             });
             if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
 
