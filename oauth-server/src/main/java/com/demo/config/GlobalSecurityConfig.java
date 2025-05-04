@@ -1,5 +1,6 @@
 package com.demo.config;
 
+import com.demo.constant.OauthScope;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
@@ -121,31 +122,53 @@ public class GlobalSecurityConfig {
         RegisteredClient myClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId("my-client")
                 .clientSecret("{noop}VxubZgAXyyTq9lGjj3qGvWNsHtE4SqTq")
-//                .clientSecret("{bcrypt}$2a$12$Eh37APLJwHoPU44pQErQK.AWM8bWZFUXHZB/LgDXr.11.BTWtKfQG")
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                .scopes(item -> item.addAll(Set.of(OidcScopes.OPENID, "ADMIN", "USER")))
+                .scopes(item -> item.addAll(Set.of(
+                        OidcScopes.OPENID, OidcScopes.PROFILE
+                )))
                 .tokenSettings(TokenSettings.builder()
                         .accessTokenTimeToLive(Duration.ofMinutes(10))
                         .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
                         .build())
-//                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
                 .build();
 
         RegisteredClient authCodeClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId("my-client2")
+                .clientId("auth-code-client")
                 .clientSecret("{noop}Qw3rTy6UjMnB9zXcV2pL0sKjHn5TxQqB")
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("https://oauth.pstmn.io/v1/callback")
-                .scope(OidcScopes.OPENID).scope(OidcScopes.EMAIL)
-                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(10))
-                        .refreshTokenTimeToLive(Duration.ofHours(8)).reuseRefreshTokens(false)
-                        .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED).build()).build();
+                .scope(OidcScopes.OPENID).scope(OidcScopes.PROFILE)
+                .tokenSettings(TokenSettings.builder()
+                        .accessTokenTimeToLive(Duration.ofMinutes(10))
+                        .refreshTokenTimeToLive(Duration.ofHours(8))
+                        .reuseRefreshTokens(false)
+                        .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
+                        .build())
+                .build();
 
-        return new InMemoryRegisteredClientRepository(myClient, authCodeClient);
+        /// pcke: it is not going to share any secret for authentication
+        RegisteredClient pkceClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                .clientId("pkce-client")
+                .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                .redirectUri("https://oauth.pstmn.io/v1/callback")
+                .scope(OidcScopes.OPENID).scope(OidcScopes.PROFILE)
+                .clientSettings(ClientSettings.builder()
+                        .requireProofKey(true)
+                        .build())
+                .tokenSettings(TokenSettings.builder()
+                        .accessTokenTimeToLive(Duration.ofMinutes(10))
+                        .refreshTokenTimeToLive(Duration.ofHours(8))
+                        .reuseRefreshTokens(false)
+                        .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
+                        .build())
+                .build();
+
+        return new InMemoryRegisteredClientRepository(myClient, authCodeClient, pkceClient);
     }
 
     @Bean
@@ -198,15 +221,20 @@ public class GlobalSecurityConfig {
     @Bean
     public OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer() {
         return context -> {
-            context.getClaims().claims(claim -> {
-                claim.put("roles", )
-            });
             if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
-
+                // customizer your payload
+                context.getClaims().claims(claim -> {
+                    Set<String> roles = new HashSet<>();
+                    claim.put(OauthScope.ROLES, roles);
+                });
             }
 
             if (OAuth2TokenType.REFRESH_TOKEN.equals(context.getTokenType())) {
-
+                // customizer your payload
+                context.getClaims().claims(claim -> {
+                    Set<String> roles = new HashSet<>();
+                    claim.put(OauthScope.ROLES, roles);
+                });
             }
         };
     }

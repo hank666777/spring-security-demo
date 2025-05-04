@@ -13,7 +13,7 @@ spring:
     oauth2:
       authorizationserver:
         endpoint:
-          jwk-set-uri: http://localhost:12100/
+          jwk-set-uri: http://localhost:12100/oauth2/jwks
       resourceserver:
         opaquetoken:
           client-id: oauth-client
